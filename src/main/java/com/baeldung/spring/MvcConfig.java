@@ -4,6 +4,8 @@ import java.util.Locale;
 
 import com.baeldung.validation.EmailValidator;
 import com.baeldung.validation.PasswordMatchesValidator;
+import com.baeldung.web.util.MvcViewName;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.MessageSource;
@@ -56,6 +58,7 @@ public class MvcConfig implements WebMvcConfigurer {
         registry.addViewController("/changePassword.html");
         registry.addViewController("/users.html");
         registry.addViewController("/qrcode.html");
+        registry.addViewController(String.format("/%s.%s", MvcViewName.MANAGEMENT.toString(), "html"));
     }
 
     @Override

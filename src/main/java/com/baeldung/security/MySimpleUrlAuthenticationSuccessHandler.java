@@ -1,7 +1,12 @@
 package com.baeldung.security;
 
-import com.baeldung.persistence.model.User;
-import com.baeldung.service.DeviceService;
+import java.io.IOException;
+import java.util.Collection;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +19,10 @@ import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.Collection;
+import com.baeldung.persistence.model.User;
+import com.baeldung.service.DeviceService;
+import com.baeldung.web.util.Authorization;
+import com.baeldung.web.util.MvcViewName;
 
 @Component("myAuthenticationSuccessHandler")
 public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -81,11 +85,17 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
 
     protected String determineTargetUrl(final Authentication authentication) {
         boolean isUser = false;
+        boolean isManager = false;
         boolean isAdmin = false;
         final Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (final GrantedAuthority grantedAuthority : authorities) {
             if (grantedAuthority.getAuthority().equals("READ_PRIVILEGE")) {
                 isUser = true;
+            } else if (grantedAuthority.getAuthority().equals(Authorization.UPDATE_PRIVILEGE.toString())) {
+                isAdmin = false;
+                isManager = true;
+                isUser = false;
+                break;
             } else if (grantedAuthority.getAuthority().equals("WRITE_PRIVILEGE")) {
                 isAdmin = true;
                 isUser = false;
@@ -104,6 +114,8 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
             return "/homepage.html?user="+username;
         } else if (isAdmin) {
             return "/console";
+        } else if (isManager) {
+            return String.format("/%s", MvcViewName.MANAGEMENT.toString());
         } else {
             throw new IllegalStateException();
         }
